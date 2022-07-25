@@ -1,3 +1,3 @@
-#CutieDev Discord Bot
+# CutieDev Discord Bot
 
 CutieDevs' Helpful Discord Bot
