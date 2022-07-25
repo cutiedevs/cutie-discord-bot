@@ -4,7 +4,8 @@
   "description": "CutieDevs' Helpful Discord Bot",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "deploy": "node deploy.js"
   },
   "repository": {
     "type": "git",
