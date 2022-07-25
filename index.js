@@ -1,9 +1,9 @@
 const fs = require("node:fs");
-const { Client, Collection, Intents } = require("discord.js");
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
 
-const token = process.env.DISCORD_TOKEN;
+const token = process.env.DISCORD_BOT_TOKEN;
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // Load Events
 const eventFiles = fs
