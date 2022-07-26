@@ -1,50 +1,45 @@
-const fs = require("node:fs");
-const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
 
+// Create Discord Client
 const token = process.env.DISCORD_BOT_TOKEN;
-
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Load Events
-const eventFiles = fs
-  .readdirSync("./events")
-  .filter((file) => file.endsWith(".js"));
-for (const file of eventFiles) {
-  const event = require(`./events/${file}`);
-  if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args));
-  } else {
-    client.on(event.name, (...args) => event.execute(...args));
-  }
-}
-
-// Load commands
+// Load Commands
 client.commands = new Collection();
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter((file) => file.endsWith(".js"));
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	client.commands.set(command.data.name, command);
 }
 
-// Handle incoming interactions
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-  const command = client.commands.get(interaction.commandName);
-  if (!command) return;
-  try {
-    // Execute the command
-    await command.execute(interaction);
-  } catch (error) {
-    // Log the error
-    console.error(error);
-    // Reply with the error message
-    await interaction.reply({
-      content: "There was an error while executing the command :(",
-      ephemeral: true,
-    });
-  }
+// Load Events
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
+
+// Handle Interactions
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isChatInputCommand()) return;
+	const command = client.commands.get(interaction.commandName);
+	if (!command) return;
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+	}
 });
 
 client.login(token);
