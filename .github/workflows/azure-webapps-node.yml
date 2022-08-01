@@ -7,8 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: CutieDiscordBot
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
   NODE_VERSION: '16.x'
 
 permissions:
@@ -29,7 +27,7 @@ jobs:
     - name: NPM Install
       run: npm install
 
-    - name: Register Commands
+    - name: Register Discord Commands
       run: npm run deploy
       env:
         DISCORD_BOT_CLIENT_ID: '995996481783861299'
@@ -39,7 +37,14 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: CutieDiscordBot
-        path: .
+        path: 
+          ./node_modules/
+          ./commands/
+          ./events/
+          ./index.js
+          ./license
+          ./package-lock.json
+          ./package.json
 
   deploy:
     permissions:
@@ -48,18 +53,22 @@ jobs:
     needs: build
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
     - name: Download Build Artifact
       uses: actions/download-artifact@v3
       with:
         name: CutieDiscordBot
+        path: ./dist/
 
-    - name: 'Deploy to Azure WebApp'
-      id: deploy-to-webapp 
-      uses: azure/webapps-deploy@v2
+    - name: 'Deploy to Server'
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+            username: 'root'
+            server: '${{ secrets.SERVER_IP }}'
+            ssh_private_key: ${{ secrets.SERVER_KEY }}
+            local_path: './dist/*'
+            remote_path: '/opt/cutie-discord-bot/'
+            sftpArgs: '-o ConnectTimeout=5'
+
+      
