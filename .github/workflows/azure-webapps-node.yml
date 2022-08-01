@@ -37,14 +37,14 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: CutieDiscordBot
-        path: 
-          ./node_modules/
-          ./commands/
-          ./events/
-          ./index.js
-          ./license
-          ./package-lock.json
-          ./package.json
+        path: |
+          node_modules/*
+          commands/*
+          events/*
+          index.js
+          license
+          package-lock.json
+          package.json
 
   deploy:
     permissions:
@@ -59,7 +59,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: CutieDiscordBot
-        path: ./dist/
+        path: dist
 
     - name: 'Deploy to Server'
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
@@ -67,7 +67,7 @@ jobs:
             username: 'root'
             server: '${{ secrets.SERVER_IP }}'
             ssh_private_key: ${{ secrets.SERVER_KEY }}
-            local_path: './dist/*'
+            local_path: 'dist/*'
             remote_path: '/opt/cutie-discord-bot/'
             sftpArgs: '-o ConnectTimeout=5'
 
