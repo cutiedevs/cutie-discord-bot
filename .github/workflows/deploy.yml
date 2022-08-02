@@ -1,0 +1,97 @@
+name: "Deploy"
+
+on:
+  push:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '16.x'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup NodeJS
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: NPM Install
+      run: npm install
+
+    - name: Register Discord Commands
+      run: npm run deploy
+      env:
+        DISCORD_BOT_CLIENT_ID: '995996481783861299'
+        DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: CutieDiscordBot
+        path: |
+          commands/*
+          events/*
+          index.js
+          license
+          package-lock.json
+          package.json
+
+  deploy:
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+
+    steps:
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: CutieDiscordBot
+        path: dist
+
+    - name: 'Deploy Artifact to Server'
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+            username: 'root'
+            server: '${{ secrets.SERVER_IP }}'
+            ssh_private_key: ${{ secrets.SERVER_KEY }}
+            local_path: 'dist/*'
+            remote_path: '/opt/cutie-discord-bot/'
+            sftpArgs: '-o ConnectTimeout=5'
+    
+    - name: 'Install Dependencies on Server'
+      uses: appleboy/ssh-action@master
+      with:
+        username: 'root'
+        host: ${{ secrets.SERVER_IP }}
+        key: ${{ secrets.SERVER_KEY }}
+        port: 22
+        script: cd /opt/cutie-discord-bot && npm install
+
+    - name: 'Restart Server'
+      uses: appleboy/ssh-action@master
+      env:
+        NODE_ENV: 'production'
+        DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        DISCORD_BOT_CLIENT_ID: '995996481783861299'
+
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: 'root'
+        key: ${{ secrets.SERVER_KEY }}
+        port: 22
+        script: cd /opt/cutie-discord-bot && pm2 stop all && pm2 start index.js --name cutie-discord-bot && pm2 save
+    
+
+      
