@@ -91,7 +91,7 @@ jobs:
         username: 'root'
         key: ${{ secrets.SERVER_KEY }}
         port: 22
-        script: cd /opt/cutie-discord-bot && pm2 stop all && pm2 start index.js --name cutie-discord-bot
+        script: cd /opt/cutie-discord-bot && pm2 start index.js --name cutie-discord-bot
     
 
       
