@@ -83,15 +83,12 @@ jobs:
       uses: appleboy/ssh-action@master
       env:
         NODE_ENV: 'production'
-        DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        DISCORD_BOT_CLIENT_ID: '995996481783861299'
-
       with:
         host: ${{ secrets.SERVER_IP }}
         username: 'root'
         key: ${{ secrets.SERVER_KEY }}
         port: 22
-        script: cd /opt/cutie-discord-bot && pm2 stop all && pm2 start index.js --name cutie-discord-bot && pm2 save
+        script: cd /opt/cutie-discord-bot && pm2 restart cutie-discord-bot
     
 
       
