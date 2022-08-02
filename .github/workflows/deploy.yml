@@ -73,6 +73,7 @@ jobs:
     - name: 'Install Dependencies on Server'
       uses: appleboy/ssh-action@master
       with:
+        username: 'root'
         host: ${{ secrets.SERVER_IP }}
         key: ${{ secrets.SERVER_KEY }}
         port: 22
